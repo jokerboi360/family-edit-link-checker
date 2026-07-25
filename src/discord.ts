@@ -58,7 +58,7 @@ function formatEasternDate(date: Date): string {
 function buildField(result: MovieResult): DiscordEmbedField {
   const title = truncate(cleanText(result.movie, "Untitled movie"), 256);
   const editor = truncate(cleanText(result.editor, "Unknown"), 900);
-  const value = truncate(`Editor: **${editor}**\n<${result.url}>`, 1_024);
+  const value = truncate(`Editor: **${editor}**\n<${result.url}>\n\u200B`, 1_024);
   return { name: title, value, inline: false };
 }
 

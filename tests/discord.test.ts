@@ -46,6 +46,7 @@ test("builds a Discord embed containing only dead movie details", () => {
   assert.match(serialized, /Editor 2/);
   assert.match(serialized, /https:\/\/example\.com\/movie\/2/);
   assert.match(serialized, /July 25, 2026/);
+  assert.equal(payloads[0]?.embeds[0]?.fields?.[0]?.value.endsWith("\n\u200B"), true);
   assert.doesNotMatch(serialized, /Working Movie/);
   assert.doesNotMatch(serialized, /Needs Review/);
   assert.doesNotMatch(serialized, /404 Not Found/);
