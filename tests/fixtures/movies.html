@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Movie fixture</title>
+    <style>
+      #ack-gate {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ack-gate">
+      <label>
+        <input id="acknowledge" type="checkbox">
+        I understand
+      </label>
+      <button id="continue" disabled>Continue</button>
+    </div>
+    <h2>🎬 Movies</h2>
+    <main id="movies">
+      <div class="entry-shell">
+        <div class="title-text">First Movie</div>
+        <div class="rc-editor">NotesPolitically correct▶️ Watch on Drive📅 8/15/2025</div>
+        <div class="editor-credit"><span data-lucide="pencil">✏</span><span data-track-editor="Editor One">Wrong fallback text</span><span>·R → PG-13</span></div>
+        <ul><li><a data-track-link href="https://example.com/first">Watch on Drive</a></li></ul>
+      </div>
+    </main>
+    <div>
+      <button data-page="#" class="active" aria-current="page">#</button>
+      <button data-page="A">A</button>
+      <button data-page="B">B</button>
+    </div>
+    <script>
+      const pages = {
+        "#": ["First Movie", "Editor One", "https://example.com/first"],
+        "A": ["Second Movie", "Editor Two", "https://example.com/second"],
+        "B": ["Third Movie", "Editor Three", "https://example.com/third"]
+      };
+
+      document.querySelector("#acknowledge").addEventListener("change", (event) => {
+        document.querySelector("#continue").disabled = !event.currentTarget.checked;
+      });
+      document.querySelector("#continue").addEventListener("click", () => {
+        document.querySelector("#ack-gate").remove();
+      });
+
+      document.querySelectorAll("[data-page]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          const page = event.currentTarget.dataset.page;
+          const [title, editor, url] = pages[page];
+          document.querySelectorAll("[data-page]").forEach((control) => {
+            control.classList.toggle("active", control === event.currentTarget);
+            if (control === event.currentTarget) {
+              control.setAttribute("aria-current", "page");
+            } else {
+              control.removeAttribute("aria-current");
+            }
+          });
+        document.querySelector("#movies").innerHTML = `
+          <div class="entry-shell">
+              <div class="title-text">${title}</div>
+              <div class="rc-editor">NotesThe Family Edition▶️ Watch on Drive📅 8/15/2025</div>
+              <div class="editor-credit"><span data-lucide="pencil">✏</span><span data-track-editor="${editor}">Wrong fallback text</span><span>·R → PG-13</span></div>
+              <ul><li><a data-track-link href="${url}">Watch on Drive</a></li></ul>
+          </div>
+        `;
+        });
+      });
+    </script>
+  </body>
+</html>

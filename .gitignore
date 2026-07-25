@@ -1,0 +1,14 @@
+node_modules/
+.pnpm-store/
+dist/
+reports/
+playwright-report/
+test-results/
+.DS_Store
+.env
+.env.*
+!.env.example
+movie-link-report-*.md
+link-results-*.json
+AGENTS.md
+sources/

@@ -1,0 +1,24 @@
+{
+  "name": "family-edit-center-link-checker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Checks paginated movie links and creates Discord-ready reports.",
+  "scripts": {
+    "check": "node --import tsx src/cli.ts",
+    "check:discord": "node --env-file=.env --import tsx src/cli.ts --discord",
+    "hydrate": "node --import tsx src/hydrate.ts",
+    "test": "node --import tsx --test tests/**/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "verify": "pnpm typecheck && pnpm test"
+  },
+  "dependencies": {
+    "playwright": "^1.54.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@11.15.1"
+}
