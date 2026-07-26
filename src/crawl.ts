@@ -25,6 +25,46 @@ async function pageMarker(page: Page): Promise<string> {
   }, TRACK_LINK_SELECTOR);
 }
 
+async function visibleLinksMarker(page: Page): Promise<string> {
+  return page.evaluate((selector) => {
+    return [...document.querySelectorAll<HTMLElement>(selector)]
+      .filter((element) => element.offsetParent !== null)
+      .map((element) => {
+        const anchor =
+          element instanceof HTMLAnchorElement
+            ? element
+            : element.closest("a") ?? element.querySelector("a");
+        return `${element.getAttribute("data-track-link") ?? ""}|${anchor?.href ?? ""}`;
+      })
+      .join("\n");
+  }, TRACK_LINK_SELECTOR);
+}
+
+async function waitForVisibleLinksChange(
+  page: Page,
+  previousLinks: string,
+  settleMs: number
+): Promise<void> {
+  await page.waitForFunction(
+    ({ selector, before }) => {
+      const links = [...document.querySelectorAll<HTMLElement>(selector)]
+        .filter((element) => element.offsetParent !== null)
+        .map((element) => {
+          const anchor =
+            element instanceof HTMLAnchorElement
+              ? element
+              : element.closest("a") ?? element.querySelector("a");
+          return `${element.getAttribute("data-track-link") ?? ""}|${anchor?.href ?? ""}`;
+        })
+        .join("\n");
+      return links !== before;
+    },
+    { selector: TRACK_LINK_SELECTOR, before: previousLinks },
+    { timeout: 10_000 }
+  );
+  await page.waitForTimeout(settleMs);
+}
+
 async function extractMovieLinks(page: Page, pageNumber: number): Promise<MovieLink[]> {
   // A source string avoids build-tool helper functions leaking into the browser
   // execution context when this project is run directly from TypeScript.
@@ -335,12 +375,15 @@ async function controlLabel(locator: Locator): Promise<string> {
 
 async function isCurrentPaginationControl(locator: Locator): Promise<boolean> {
   return locator.evaluate(
-    (element) =>
-      element.getAttribute("aria-current") === "page" ||
-      element.matches(".active, .selected, [data-active='true']") ||
-      element.closest(
-        ".active, .selected, [aria-current='page'], [data-active='true']"
-      ) !== null
+    (element) => {
+      const selectedSelector =
+        ".active, .selected, [aria-current='page'], [data-active='true']";
+      return (
+        element.getAttribute("aria-current") === "page" ||
+        element.matches(selectedSelector) ||
+        element.parentElement?.matches(selectedSelector) === true
+      );
+    }
   );
 }
 
@@ -597,32 +640,9 @@ export async function crawlMoviePages(
         break;
       }
 
-      const previousMarker = marker;
+      const previousLinks = await visibleLinksMarker(page);
       await next.click();
-      await page
-        .waitForFunction(
-          ({ selector, before }) => {
-            const current =
-              document.querySelector('[aria-current="page"]')?.textContent?.trim() ??
-              document.querySelector(".pagination .active")?.textContent?.trim() ??
-              "";
-            const links = [...document.querySelectorAll<HTMLElement>(selector)]
-              .filter((element) => element.offsetParent !== null)
-              .map((element) => {
-                const anchor =
-                  element instanceof HTMLAnchorElement
-                    ? element
-                    : element.closest("a") ?? element.querySelector("a");
-                return `${element.getAttribute("data-track-link") ?? ""}|${anchor?.href ?? ""}`;
-              })
-              .join("\n");
-            return `${location.href}|${current}|${links}` !== before;
-          },
-          { selector: TRACK_LINK_SELECTOR, before: previousMarker },
-          { timeout: 5_000 }
-        )
-        .catch(() => undefined);
-      await page.waitForTimeout(options.settleMs);
+      await waitForVisibleLinksChange(page, previousLinks, options.settleMs);
     }
   } finally {
     await context.close();

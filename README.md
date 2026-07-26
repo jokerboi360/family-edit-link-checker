@@ -76,7 +76,7 @@ secret because anyone who has it can post to that channel.
 
 ## Run automatically with GitHub Actions
 
-The included workflow runs every Monday at 9:15 AM Eastern Time. It can also be
+The included workflow runs every Friday at 9:00 AM Eastern Time. It can also be
 started manually from the repository's **Actions** tab.
 
 After pushing this project to GitHub:

@@ -29,10 +29,12 @@
         <ul><li><a data-track-link href="https://example.com/first">Watch on Drive</a></li></ul>
       </div>
     </main>
-    <div>
-      <button data-page="#" class="active" aria-current="page">#</button>
-      <button data-page="A">A</button>
-      <button data-page="B">B</button>
+    <div class="tab-pane active">
+      <div class="letter-bar">
+        <button data-page="#" class="active" aria-current="page">#</button>
+        <button data-page="A">A</button>
+        <button data-page="B">B</button>
+      </div>
     </div>
     <script>
       const pages = {
@@ -60,14 +62,16 @@
               control.removeAttribute("aria-current");
             }
           });
-        document.querySelector("#movies").innerHTML = `
-          <div class="entry-shell">
-              <div class="title-text">${title}</div>
-              <div class="rc-editor">NotesThe Family Edition▶️ Watch on Drive📅 8/15/2025</div>
-              <div class="editor-credit"><span data-lucide="pencil">✏</span><span data-track-editor="${editor}">Wrong fallback text</span><span>·R → PG-13</span></div>
-              <ul><li><a data-track-link href="${url}">Watch on Drive</a></li></ul>
-          </div>
-        `;
+        setTimeout(() => {
+          document.querySelector("#movies").innerHTML = `
+            <div class="entry-shell">
+                <div class="title-text">${title}</div>
+                <div class="rc-editor">NotesThe Family Edition▶️ Watch on Drive📅 8/15/2025</div>
+                <div class="editor-credit"><span data-lucide="pencil">✏</span><span data-track-editor="${editor}">Wrong fallback text</span><span>·R → PG-13</span></div>
+                <ul><li><a data-track-link href="${url}">Watch on Drive</a></li></ul>
+            </div>
+          `;
+        }, 75);
         });
       });
     </script>
