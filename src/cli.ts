@@ -16,6 +16,7 @@ interface CliOptions {
   headless: boolean;
   copy: boolean;
   discord: boolean;
+  testing: boolean;
   failOnDead: boolean;
   maxPages: number;
   concurrency: number;
@@ -48,6 +49,7 @@ Options:
   --headed               Show the browser while crawling
   --copy                 Copy the report when it fits one Discord message
   --discord              Post the finished report to a Discord webhook
+  --testing              Check only the first two pages and label reports TESTING
   --fail-on-dead         Exit with status 2 when dead links are found
   --help                  Show this help
 `.trim();
@@ -68,6 +70,7 @@ function parseArgs(args: string[]): CliOptions {
     headless: true,
     copy: false,
     discord: false,
+    testing: false,
     failOnDead: false,
     maxPages: 100,
     concurrency: 8,
@@ -134,6 +137,9 @@ function parseArgs(args: string[]): CliOptions {
       case "--discord":
         options.discord = true;
         break;
+      case "--testing":
+        options.testing = true;
+        break;
       case "--fail-on-dead":
         options.failOnDead = true;
         break;
@@ -145,6 +151,7 @@ function parseArgs(args: string[]): CliOptions {
   if (!options.url) throw new Error("--url requires a value");
   if (!options.outputDirectory) throw new Error("--output-dir requires a value");
   new URL(options.url);
+  if (options.testing) options.maxPages = 2;
   return options;
 }
 
@@ -169,6 +176,9 @@ async function copyToClipboard(text: string): Promise<boolean> {
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
 
+  if (options.testing) {
+    console.log("TESTING mode: only the first two catalog pages will be checked.");
+  }
   console.log(`Crawling ${options.url}`);
   const failures: MovieResult[] = [];
   const summary: ReportSummary = {
@@ -244,7 +254,8 @@ async function main(): Promise<void> {
     summary,
     outputDirectory: options.outputDirectory,
     sourceUrl: options.url,
-    checkedAt
+    checkedAt,
+    testing: options.testing
   });
 
   console.log(
@@ -263,7 +274,8 @@ async function main(): Promise<void> {
     const messageCount = await postDiscordReport(webhookUrl, {
       results: failures,
       summary,
-      checkedAt
+      checkedAt,
+      testing: options.testing
     });
     console.log(
       `Posted ${messageCount} Discord embed${messageCount === 1 ? "" : "s"}.`

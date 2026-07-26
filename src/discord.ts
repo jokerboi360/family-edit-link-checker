@@ -29,6 +29,7 @@ export interface DiscordReportInput {
   results: MovieResult[];
   summary: ReportSummary;
   checkedAt: Date;
+  testing?: boolean;
 }
 
 interface PostDiscordOptions {
@@ -95,6 +96,7 @@ function payload(embed: DiscordEmbed): DiscordPayload {
 
 export function buildDiscordPayloads(input: DiscordReportInput): DiscordPayload[] {
   const date = formatEasternDate(input.checkedAt);
+  const titlePrefix = input.testing ? "🧪 TESTING — " : "";
   const dead = input.results
     .filter((result) => result.state === "dead")
     .sort((left, right) => left.movie.localeCompare(right.movie));
@@ -104,8 +106,8 @@ export function buildDiscordPayloads(input: DiscordReportInput): DiscordPayload[
     return [
       payload({
         title: hasReviewItems
-          ? `⚠️ Link Check Finished — ${date}`
-          : `✅ All Movie Links Are Working — ${date}`,
+          ? `${titlePrefix}⚠️ Link Check Finished — ${date}`
+          : `${titlePrefix}✅ All Movie Links Are Working — ${date}`,
         description: hasReviewItems
           ? `No confirmed dead links were found. ${input.summary.review} link${
               input.summary.review === 1 ? "" : "s"
@@ -124,7 +126,7 @@ export function buildDiscordPayloads(input: DiscordReportInput): DiscordPayload[
     const field = buildField(result);
     const proposed = [...current, field];
     const proposedEmbed: DiscordEmbed = {
-      title: `🚨 Dead Movie Links — ${date}`,
+      title: `${titlePrefix}🚨 Dead Movie Links — ${date}`,
       color: 0xe74c3c,
       fields: proposed,
       footer: { text: footerText(input.summary) }
@@ -145,7 +147,7 @@ export function buildDiscordPayloads(input: DiscordReportInput): DiscordPayload[
 
   return fieldGroups.map((fields, index) =>
     payload({
-      title: `🚨 Dead Movie Links — ${date}`,
+      title: `${titlePrefix}🚨 Dead Movie Links — ${date}`,
       color: 0xe74c3c,
       fields,
       footer: {

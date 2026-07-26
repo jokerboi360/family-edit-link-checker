@@ -7,6 +7,7 @@
   "scripts": {
     "check": "node --import tsx src/cli.ts",
     "check:discord": "node --env-file=.env --import tsx src/cli.ts --discord",
+    "check:discord:test": "node --env-file=.env --import tsx src/cli.ts --discord --testing --concurrency 1 --timeout 30 --request-delay 3000 --request-jitter 1000 --retry-rate-limits --settle 750",
     "hydrate": "node --import tsx src/hydrate.ts",
     "test": "node --import tsx --test tests/**/*.test.ts",
     "typecheck": "tsc --noEmit",

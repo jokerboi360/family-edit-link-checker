@@ -62,6 +62,15 @@ title, editor, and visible link. Large reports are split into sequential
 messages that stay inside Discord's limits. The webhook automatically retries
 Discord rate limits and temporary server errors.
 
+To test the webhook locally without checking the whole catalog, run:
+
+```sh
+pnpm run check:discord:test
+```
+
+This checks only the first two catalog pages and labels the Discord embed and saved
+report as `TESTING`. It does not change the normal checker or scheduled job.
+
 Never commit `.env` or paste the webhook URL into code. A webhook URL is a
 secret because anyone who has it can post to that channel.
 

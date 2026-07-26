@@ -18,19 +18,23 @@ function renderItem(result: MovieResult): string {
 
 export function buildDiscordMessages(
   results: MovieResult[],
-  maxLength = DISCORD_LIMIT
+  maxLength = DISCORD_LIMIT,
+  testing = false
 ): string[] {
+  const testingPrefix = testing ? "🧪 **TESTING**\n" : "";
   const dead = results.filter((result) => result.state === "dead");
   const sections: Array<{ heading: string; items: MovieResult[] }> = [];
 
   if (dead.length > 0) {
     sections.push({
-      heading: `🚨 **Dead Movie Links** (${dead.length})`,
+      heading: `${testingPrefix}🚨 **Dead Movie Links** (${dead.length})`,
       items: dead
     });
   }
   if (sections.length === 0) {
-    return ["✅ **Movie Link Check Complete**\nNo dead links found."];
+    return [
+      `${testingPrefix}✅ **Movie Link Check Complete**\nNo dead links found.`
+    ];
   }
 
   const messages: string[] = [];
@@ -69,6 +73,7 @@ export function buildMarkdownReport(input: {
   sourceUrl: string;
   checkedAt: Date;
   summary?: ReportSummary;
+  testing?: boolean;
 }): string {
   const dead = input.results
     .filter((result) => result.state === "dead")
@@ -79,8 +84,9 @@ export function buildMarkdownReport(input: {
     day: "numeric",
     year: "numeric"
   }).format(input.checkedAt);
+  const testingPrefix = input.testing ? "TESTING — " : "";
   const lines = [
-    `# Dead Movie Links as of ${easternDate} (ET)`,
+    `# ${testingPrefix}Dead Movie Links as of ${easternDate} (ET)`,
     "",
     "| Title | Editor | Link |",
     "| --- | --- | --- |"
@@ -109,13 +115,18 @@ export async function writeReports(input: {
   sourceUrl: string;
   checkedAt?: Date;
   summary?: ReportSummary;
+  testing?: boolean;
 }): Promise<{ markdownFile: string; jsonFile: string; messages: string[] }> {
   const checkedAt = input.checkedAt ?? new Date();
   const outputDirectory = resolve(input.outputDirectory);
   await mkdir(outputDirectory, { recursive: true });
 
   const stamp = timestampForFile(checkedAt);
-  const messages = buildDiscordMessages(input.results);
+  const messages = buildDiscordMessages(
+    input.results,
+    DISCORD_LIMIT,
+    input.testing ?? false
+  );
   const markdownFile = join(outputDirectory, `movie-link-report-${stamp}.md`);
   await writeFile(
     markdownFile,
@@ -123,6 +134,7 @@ export async function writeReports(input: {
       results: input.results,
       sourceUrl: input.sourceUrl,
       checkedAt,
+      ...(input.testing !== undefined ? { testing: input.testing } : {}),
       ...(input.summary ? { summary: input.summary } : {})
     }),
     "utf8"
@@ -135,6 +147,7 @@ export async function writeReports(input: {
       {
         sourceUrl: input.sourceUrl,
         checkedAt: checkedAt.toISOString(),
+        testing: input.testing ?? false,
         summary: input.summary ?? {
           total: input.results.length,
           valid: input.results.filter((result) => result.state === "valid").length,

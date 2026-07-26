@@ -74,6 +74,17 @@ test("splits a large dead-link list within Discord field limits", () => {
   );
 });
 
+test("labels test-mode Discord reports as TESTING", () => {
+  const payloads = buildDiscordPayloads({
+    results: [result("Dead Movie", "dead")],
+    summary: { total: 1, valid: 0, dead: 1, review: 0 },
+    checkedAt: new Date("2026-07-25T16:00:00Z"),
+    testing: true
+  });
+
+  assert.match(payloads[0]?.embeds[0]?.title ?? "", /TESTING/);
+});
+
 test("posts sequentially and retries a rate-limited Discord response", async () => {
   let requests = 0;
   const delays: number[] = [];

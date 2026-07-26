@@ -42,6 +42,19 @@ test("returns a success message when every link is valid", () => {
   ]);
 });
 
+test("labels test-mode local reports as TESTING", () => {
+  const results: MovieResult[] = [];
+  assert.match(buildDiscordMessages(results, 2_000, true)[0] ?? "", /TESTING/);
+
+  const report = buildMarkdownReport({
+    results,
+    sourceUrl: "https://example.com/#movies",
+    checkedAt: new Date("2026-07-25T12:00:00Z"),
+    testing: true
+  });
+  assert.match(report, /^# TESTING — Dead Movie Links/);
+});
+
 test("builds one complete Markdown report for Discord upload", () => {
   const results: MovieResult[] = [
     {
