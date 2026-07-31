@@ -2,11 +2,18 @@ name: Weekly Movie Link Check
 
 on:
   workflow_dispatch:
+    inputs:
+      backup:
+        description: Skip when this Friday already has a successful run
+        required: false
+        type: boolean
+        default: false
   schedule:
-    - cron: "0 9 * * 5"
+    - cron: "17 9 * * 5"
       timezone: "America/New_York"
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -16,32 +23,64 @@ concurrency:
 jobs:
   check-links:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
-    env:
-      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+    timeout-minutes: 120
 
     steps:
+      - name: Check for an earlier successful Friday run
+        id: backup_check
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.backup }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          check_date="$(TZ=America/New_York date +%F)"
+          existing_run="$(
+            gh run list \
+              --repo "$GITHUB_REPOSITORY" \
+              --workflow link-check.yml \
+              --limit 20 \
+              --json databaseId,conclusion,createdAt \
+              --jq ".[] | select(.databaseId != ${GITHUB_RUN_ID} and .conclusion == \"success\" and (.createdAt | startswith(\"${check_date}\"))) | .databaseId" \
+              | head -n 1
+          )"
+
+          if [ -n "$existing_run" ]; then
+            echo "A successful run already exists for $check_date; skipping this backup."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No successful run exists for $check_date; continuing with the backup."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Check out repository
+        if: steps.backup_check.outputs.skip != 'true'
         uses: actions/checkout@v6
 
       - name: Set up Node.js
+        if: steps.backup_check.outputs.skip != 'true'
         uses: actions/setup-node@v6
         with:
           node-version: 24
 
       - name: Install pnpm
+        if: steps.backup_check.outputs.skip != 'true'
         run: npm install --global pnpm@11.15.1
 
       - name: Install dependencies
+        if: steps.backup_check.outputs.skip != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Install Chromium
+        if: steps.backup_check.outputs.skip != 'true'
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Verify project
+        if: steps.backup_check.outputs.skip != 'true'
         run: pnpm verify
 
       - name: Confirm Discord secret is configured
+        if: steps.backup_check.outputs.skip != 'true'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           if [ -z "$DISCORD_WEBHOOK_URL" ]; then
             echo "Add DISCORD_WEBHOOK_URL in repository Settings > Secrets and variables > Actions."
@@ -49,6 +88,9 @@ jobs:
           fi
 
       - name: Check movie links and post to Discord
+        if: steps.backup_check.outputs.skip != 'true'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: >-
           pnpm check --
           --discord

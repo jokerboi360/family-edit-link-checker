@@ -76,7 +76,8 @@ secret because anyone who has it can post to that channel.
 
 ## Run automatically with GitHub Actions
 
-The included workflow runs every Friday at 9:00 AM Eastern Time. It can also be
+The included workflow runs every Friday at 9:17 AM Eastern Time. The off-minute
+start avoids GitHub Actions' busiest scheduling window. It can also be
 started manually from the repository's **Actions** tab.
 
 After pushing this project to GitHub:
@@ -93,7 +94,29 @@ Discord embeds. It sends only one link request at a time and waits a random
 three to four seconds between links. If Google returns a `429` rate limit, it
 waits approximately 10, 30, and 60 seconds before its three retries. A link
 that remains rate-limited is marked “could not be verified,” never dead. The
-secret is supplied only while the job runs.
+Discord secret is supplied only to the two steps that validate and use it.
+
+### Optional backup scheduler
+
+GitHub may delay or drop scheduled runs during periods of high load. For an
+independent fallback, configure an external scheduler for Friday at 10:45 AM
+Eastern Time and have it send this request:
+
+```sh
+curl --request POST \
+  --url https://api.github.com/repos/jokerboi360/family-edit-link-checker/actions/workflows/link-check.yml/dispatches \
+  --header "Accept: application/vnd.github+json" \
+  --header "Authorization: Bearer YOUR_FINE_GRAINED_TOKEN" \
+  --header "X-GitHub-Api-Version: 2026-03-10" \
+  --data '{"ref":"main","inputs":{"backup":true}}'
+```
+
+Use a fine-grained GitHub token restricted to this repository with only
+**Actions: write** permission, and store it in the external scheduler rather
+than in this repository. Backup dispatches check that day's workflow history
+before doing any work. If the regular Friday run already succeeded, the backup
+exits successfully without checking links or posting to Discord again. If the
+regular run is missing or failed, the backup performs the full check.
 
 This project is safe to keep public: `.env`, generated reports, browser output,
 and dependency folders are excluded from Git. Do not manually add any of those
