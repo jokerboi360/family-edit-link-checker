@@ -41,6 +41,8 @@ test("builds a Discord embed containing only dead movie details", () => {
   });
 
   assert.equal(payloads.length, 1);
+  assert.equal(payloads[0]?.username, "Family Edit Dead Link Checker");
+  assert.equal(payloads[0]?.avatar_url, "https://i.imgur.com/oZXljZf.png");
   const serialized = JSON.stringify(payloads[0]);
   assert.match(serialized, /Dead Movie/);
   assert.match(serialized, /Editor 2/);

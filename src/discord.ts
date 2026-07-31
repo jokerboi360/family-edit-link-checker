@@ -21,6 +21,7 @@ interface DiscordEmbed {
 
 export interface DiscordPayload {
   username: string;
+  avatar_url: string;
   allowed_mentions: { parse: string[] };
   embeds: DiscordEmbed[];
 }
@@ -88,7 +89,8 @@ function payload(embed: DiscordEmbed): DiscordPayload {
   }
 
   return {
-    username: "Family Edit Link Checker",
+    username: "Family Edit Dead Link Checker",
+    avatar_url: "https://i.imgur.com/oZXljZf.png",
     allowed_mentions: { parse: [] },
     embeds: [embed]
   };
