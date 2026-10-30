@@ -7,7 +7,7 @@ import { extractReportedBadLinks, normalizeLinkKey } from "./report-input.js";
 import { writeReports } from "./report.js";
 import type { MovieResult, ReportSummary } from "./types.js";
 
-const DEFAULT_URL = "https://familyeditcenter.netlify.app/#movies";
+const DEFAULT_URL = "https://familyeditcenter.jrem.org/#movies";
 
 function usage(): string {
   return `
