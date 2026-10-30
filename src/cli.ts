@@ -8,7 +8,7 @@ import { postDiscordReport } from "./discord.js";
 import { writeReports } from "./report.js";
 import type { MovieResult, ReportSummary } from "./types.js";
 
-const DEFAULT_URL = "https://familyeditcenter.netlify.app/#movies";
+const DEFAULT_URL = "https://familyeditcenter.jrem.org/#movies";
 
 interface CliOptions {
   url: string;
