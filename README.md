@@ -23,7 +23,7 @@ pnpm exec playwright install chromium
 pnpm check
 ```
 
-The default page is `https://familyeditcenter.netlify.app/#movies`. Reports are
+The default page is `https://familyeditcenter.jrem.org/#movies`. Reports are
 written to `reports/`. The Markdown table contains only the date, movie title,
 editor name, and bad link.
 
